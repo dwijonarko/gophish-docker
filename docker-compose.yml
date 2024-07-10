@@ -1,6 +1,11 @@
 ---
 version: "3.7"
 
+networks:
+  http_dev:
+    external: true
+
+
 secrets:
   config_json:
     file: ./src/secrets/config.json
@@ -34,6 +39,8 @@ services:
         published: 3380
         protocol: tcp
         mode: host
+    networks:
+      - http_dev
     secrets:
       - source: config_json
         target: config.json
@@ -45,3 +52,15 @@ services:
         target: phish_fullchain.pem
       - source: phish_privkey_pem
         target: phish_privkey.pem
+    deploy:
+      labels:
+        caddy: gophish.tool.vm
+        caddy.tls: "/data/local-cert.pem /data/local-key.pem"
+        caddy.reverse_proxy: "{{ upstreams 80 }}"
+      resources:  
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.2'
+          memory: 500M
